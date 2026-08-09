@@ -76,3 +76,13 @@ The print layout automatically removes laboratory navigation and editing control
 - `README.md` — this release guide
 
 The release has no external fonts, images, scripts, stylesheets, packages, analytics, accounts, or network integrations.
+
+## Copyright and Use
+
+Copyright © 2026 Susan Frances Levaque. All rights reserved.
+
+**Build a Habitable Planet** was designed and developed by Susan Frances Levaque with AI-assisted development.
+
+This repository is publicly available for demonstration, educational evaluation, and portfolio purposes. Public availability does not place the project in the public domain or grant an open-source license. Reproduction, redistribution, republication, commercial use, or distribution of modified versions of this project or substantial portions of it requires prior written permission, except where otherwise permitted by law.
+
+For complete copyright, attribution, AI-assistance, and permitted-use information, see [`RIGHTS.md`](RIGHTS.md).
