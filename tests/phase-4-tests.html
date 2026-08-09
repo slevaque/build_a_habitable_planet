@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 4 Planetary Habitability Report Tests</title>
+  <style>
+    body{max-width:1100px;margin:2rem auto;padding:0 1rem;color:#eef7ff;background:#07111f;font:16px/1.5 system-ui,sans-serif}table{width:100%;border-collapse:collapse}th,td{padding:.65rem;border:1px solid #49637a;text-align:left;vertical-align:top}.pass{color:#8ff0b8}.fail{color:#ff9aa1}caption{text-align:left;margin-bottom:1rem;font-size:1.25rem;font-weight:700}
+  </style>
+  <script defer src="../js/constants.js"></script>
+  <script defer src="../js/input-rules.js"></script>
+  <script defer src="../js/physics.js"></script>
+  <script defer src="../js/climate-v4.js"></script>
+  <script defer src="../js/environment.js"></script>
+  <script defer src="../js/planet-state.js"></script>
+  <script defer src="../js/life-compatibility.js"></script>
+  <script defer src="../js/explanations.js"></script>
+  <script defer src="../js/experiment-records.js"></script>
+  <script defer src="../js/experiment-storage.js"></script>
+  <script defer src="../js/comparison-interpreter.js"></script>
+  <script defer src="../js/report-records.js"></script>
+  <script defer src="../js/report-storage.js"></script>
+  <script defer src="../js/report-model.js"></script>
+  <script defer src="phase-4-tests.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Build a Habitable Planet — Phase 4 Tests</h1>
+    <p>This offline harness verifies explicit report-subject selection, factual evidence assembly, student-owned reasoning, reference handling, persistence, print validation, and prohibited-feature boundaries.</p>
+    <p id="summary" aria-live="polite">Running tests…</p>
+    <table>
+      <caption>Phase 4 report-model results</caption>
+      <thead><tr><th>Test</th><th>Result</th><th>Evidence</th></tr></thead>
+      <tbody id="results"></tbody>
+    </table>
+  </main>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 1 Model Tests</title>
+  <style>
+    body{max-width:1000px;margin:2rem auto;padding:0 1rem;color:#eef7ff;background:#07111f;font:16px/1.5 system-ui,sans-serif}table{width:100%;border-collapse:collapse}th,td{padding:.65rem;border:1px solid #49637a;text-align:left}.pass{color:#8ff0b8}.fail{color:#ff9aa1}code{color:#9deaff}caption{text-align:left;margin-bottom:1rem;font-size:1.25rem;font-weight:700}
+  </style>
+  <script defer src="../js/constants.js"></script>
+  <script defer src="../js/input-rules.js"></script>
+  <script defer src="../js/physics.js"></script>
+  <script defer src="../js/climate-v4.js"></script>
+  <script defer src="../js/environment.js"></script>
+  <script defer src="../js/planet-state.js"></script>
+  <script defer src="model-tests.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Build a Habitable Planet — Phase 1 Model Tests</h1>
+    <p>This offline harness tests scientific relationships without using interface calculations.</p>
+    <p id="summary" aria-live="polite">Running tests…</p>
+    <table>
+      <caption>Numerical and model-rule results</caption>
+      <thead><tr><th>Test</th><th>Result</th><th>Evidence</th></tr></thead>
+      <tbody id="results"></tbody>
+    </table>
+  </main>
+</body>
+</html>

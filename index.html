@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>Build a Habitable Planet — Final Report</title>
+  <link rel="stylesheet" href="styles.css?v=phase4a">
+  <script defer src="js/constants.js?v=phase1b"></script>
+  <script defer src="js/input-rules.js?v=phase1e"></script>
+  <script defer src="js/physics.js?v=phase1b"></script>
+  <script defer src="js/climate-v4.js?v=phase1b"></script>
+  <script defer src="js/environment.js?v=phase1e"></script>
+  <script defer src="js/planet-state.js?v=phase1b"></script>
+  <script defer src="js/life-compatibility.js?v=phase2a"></script>
+  <script defer src="js/explanations.js?v=phase1c"></script>
+  <script defer src="js/experiment-records.js?v=phase3a"></script>
+  <script defer src="js/experiment-storage.js?v=phase3a"></script>
+  <script defer src="js/comparison-interpreter.js?v=phase3a"></script>
+  <script defer src="js/report-records.js?v=phase4a"></script>
+  <script defer src="js/report-storage.js?v=phase4a"></script>
+  <script defer src="js/report-model.js?v=phase4a"></script>
+  <script defer src="js/ui.js?v=phase1b"></script>
+  <script defer src="js/life-lab-ui.js?v=phase2a"></script>
+  <script defer src="js/discoveries-ui.js?v=phase3a"></script>
+  <script defer src="js/report-ui.js?v=phase4a"></script>
+  <script defer src="js/app.js?v=phase4a"></script>
+</head>
+<body>
+  <a class="skip-link" href="#living-planet">Skip to the living planet</a>
+  <a class="skip-link" href="#engineering">Skip to planet controls</a>
+  <a class="skip-link" href="#life-lab">Skip to Life Lab</a>
+  <a class="skip-link" href="#discoveries-workspace">Skip to saved experiments</a>
+  <a class="skip-link" href="#report-workspace">Skip to report</a>
+
+  <header class="mission-header">
+    <div class="brand" aria-label="Build a Habitable Planet">
+      <span class="brand-mark" aria-hidden="true">◉</span>
+      <span>BUILD A<br><strong>HABITABLE PLANET</strong></span>
+    </div>
+
+    <div class="planet-identity">
+      <label for="planet-name">Planet name</label>
+      <input id="planet-name" name="planetName" maxlength="40" value="Nereid-7">
+    </div>
+
+    <dl class="header-evidence" aria-label="Current star and orbit">
+      <div><dt>Star</dt><dd id="header-star">—</dd></div>
+      <div><dt>Orbit</dt><dd id="header-orbit">—</dd></div>
+      <div><dt>Stellar flux</dt><dd id="header-flux">—</dd></div>
+    </dl>
+
+    <nav aria-label="Primary laboratory areas" class="primary-nav">
+      <a id="build-view-link" href="#engineering" aria-current="page">Build</a>
+      <a id="dashboard-view-link" href="#planetary-status">Dashboard</a>
+      <a id="life-lab-view-link" href="#life-lab">Life Lab</a>
+      <a id="discoveries-view-link" href="#discoveries-workspace">Discoveries</a>
+      <button type="button" disabled title="Planned for a later phase">Scientific Mode</button>
+      <a id="report-view-link" href="#report-workspace">Report</a>
+    </nav>
+
+    <div class="utility-actions" aria-label="Laboratory utilities">
+      <button type="button" id="snapshot-button" class="utility-button">Save Snapshot</button>
+      <button type="button" id="earth-reference-button" class="utility-button">Earth Reference</button>
+      <button type="button" id="help-button" class="utility-button">Help</button>
+      <button type="button" id="reset-button" class="utility-button utility-danger">Reset</button>
+    </div>
+  </header>
+
+  <main class="laboratory-shell">
+    <aside id="engineering" class="panel engineering-panel" aria-labelledby="engineering-title">
+      <header class="panel-heading">
+        <p class="eyebrow">You control</p>
+        <h1 id="engineering-title">Planet Engineering</h1>
+        <p>Change a cause and observe the planetary consequences.</p>
+      </header>
+
+      <form id="planet-controls" novalidate>
+        <section class="control-family is-open" data-accordion="star-system">
+          <h2>
+            <button type="button" class="accordion-button" aria-expanded="true" aria-controls="star-system-controls">
+              <span>Star System</span>
+              <span id="star-summary" class="family-summary">—</span>
+            </button>
+          </h2>
+          <div id="star-system-controls" class="accordion-content">
+            <fieldset class="choice-fieldset">
+              <legend>Star Type</legend>
+              <label class="choice-card">
+                <input type="radio" name="starType" value="m">
+                <span><strong>Red Dwarf</strong><small>Dim, long-lived, active model star</small></span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="starType" value="g">
+                <span><strong>Sun-Like</strong><small>Familiar luminosity reference</small></span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="starType" value="f">
+                <span><strong>Hotter Star</strong><small>Brighter with a shorter lifespan</small></span>
+              </label>
+            </fieldset>
+
+            <div class="range-control">
+              <div class="control-label-row">
+                <label for="orbital-distance">Orbital Distance</label>
+                <output id="orbital-distance-output" for="orbital-distance">—</output>
+              </div>
+              <input type="range" id="orbital-distance" name="orbitalDistance" step="0.01" aria-describedby="orbit-help">
+              <div class="range-limits" aria-hidden="true"><span id="orbit-min">—</span><span id="orbit-max">—</span></div>
+              <p id="orbit-help" class="control-help">Distance changes stellar energy through an inverse-square relationship.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="control-family" data-accordion="planet">
+          <h2>
+            <button type="button" class="accordion-button" aria-expanded="false" aria-controls="planet-controls-group">
+              <span>Planet</span>
+              <span id="planet-summary" class="family-summary">—</span>
+            </button>
+          </h2>
+          <div id="planet-controls-group" class="accordion-content" hidden>
+            <div class="range-control">
+              <div class="control-label-row">
+                <label for="planet-mass">Planet Mass</label>
+                <output id="planet-mass-output" for="planet-mass">—</output>
+              </div>
+              <input type="range" id="planet-mass" name="planetMass" min="0.5" max="3" step="0.1" aria-describedby="mass-help">
+              <div class="range-limits" aria-hidden="true"><span>0.5 M⊕</span><span>3.0 M⊕</span></div>
+              <p id="mass-help" class="control-help">The model derives radius, gravity, and escape velocity.</p>
+            </div>
+
+            <div class="derived-strip" aria-label="Model-calculated planet properties">
+              <p class="eyebrow">Model calculates</p>
+              <dl>
+                <div><dt>Radius</dt><dd id="derived-radius">—</dd></div>
+                <div><dt>Gravity</dt><dd id="derived-gravity">—</dd></div>
+                <div><dt>Escape</dt><dd id="derived-escape">—</dd></div>
+              </dl>
+            </div>
+
+            <div class="range-control">
+              <div class="control-label-row">
+                <label for="surface-water">Surface Water Inventory</label>
+                <output id="surface-water-output" for="surface-water">—</output>
+              </div>
+              <input type="range" id="surface-water" name="surfaceWaterInventory" min="0" max="100" step="1" aria-describedby="water-help">
+              <div class="range-limits" aria-hidden="true"><span>Dry</span><span>Water-rich</span></div>
+              <p id="water-help" class="control-help">Available surface water is not automatically liquid ocean coverage.</p>
+            </div>
+
+            <label class="select-control" for="geologic-activity">
+              <span>Geologic Activity</span>
+              <select id="geologic-activity" name="geologicActivity">
+                <option>Dormant</option><option>Low</option><option>Moderate</option><option>Active</option><option>Extreme</option>
+              </select>
+            </label>
+
+            <label class="select-control" for="magnetic-field">
+              <span>Magnetic Field Strength</span>
+              <select id="magnetic-field" name="magneticField">
+                <option>None</option><option>Weak</option><option>Moderate</option><option>Strong</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="control-family" data-accordion="atmosphere">
+          <h2>
+            <button type="button" class="accordion-button" aria-expanded="false" aria-controls="atmosphere-controls-group">
+              <span>Atmosphere</span>
+              <span id="atmosphere-summary" class="family-summary">—</span>
+            </button>
+          </h2>
+          <div id="atmosphere-controls-group" class="accordion-content" hidden>
+            <div class="range-control">
+              <div class="control-label-row">
+                <label for="atmospheric-pressure">Surface Pressure</label>
+                <output id="atmospheric-pressure-output" for="atmospheric-pressure">—</output>
+              </div>
+              <input type="range" id="atmospheric-pressure" name="atmosphericPressure" min="0.1" max="5" step="0.1" aria-describedby="pressure-help">
+              <div class="range-limits" aria-hidden="true"><span>0.1 atm</span><span>5.0 atm</span></div>
+              <p id="pressure-help" class="control-help">Pressure and gravity jointly determine atmospheric column.</p>
+            </div>
+
+            <fieldset class="atmosphere-mixer">
+              <legend>Dry Atmospheric Composition</legend>
+              <p class="control-help">O₂, CO₂, and CH₄ are student inputs. Nitrogen fills the remainder.</p>
+
+              <div class="range-control compact">
+                <div class="control-label-row">
+                  <label for="oxygen">Oxygen (O₂)</label>
+                  <output id="oxygen-output" for="oxygen">—</output>
+                </div>
+                <input type="range" id="oxygen" name="oxygenPct" min="0" max="35" step="1">
+              </div>
+
+              <label class="select-control" for="carbon-dioxide">
+                <span>Carbon Dioxide (CO₂)</span>
+                <select id="carbon-dioxide" name="carbonDioxidePct">
+                  <option value="0">None — 0%</option>
+                  <option value="0.04">Trace — 0.04%</option>
+                  <option value="0.1">Low — 0.1%</option>
+                  <option value="1">Moderate — 1%</option>
+                  <option value="5">High — 5%</option>
+                  <option value="20">Very High — 20%</option>
+                  <option value="50">CO₂-Dominated — 50%</option>
+                </select>
+              </label>
+
+              <label class="select-control" for="methane">
+                <span>Methane (CH₄)</span>
+                <select id="methane" name="methanePct">
+                  <option value="0">None — 0%</option>
+                  <option value="0.0002">Trace — 0.0002%</option>
+                  <option value="0.01">Low — 0.01%</option>
+                  <option value="0.1">Elevated — 0.1%</option>
+                  <option value="0.5">High — 0.5%</option>
+                  <option value="1">Very High — 1%</option>
+                  <option value="2">Upper model range — 2%</option>
+                </select>
+              </label>
+
+              <div class="composition" aria-labelledby="composition-title">
+                <p id="composition-title" class="eyebrow">Dry atmosphere total: 100%</p>
+                <div class="composition-bar" role="img" id="composition-bar" aria-label="Dry atmosphere composition">
+                  <span class="gas n2" id="gas-n2"></span>
+                  <span class="gas o2" id="gas-o2"></span>
+                  <span class="gas co2" id="gas-co2"></span>
+                  <span class="gas ch4" id="gas-ch4"></span>
+                </div>
+                <p id="composition-text" class="composition-text">—</p>
+              </div>
+            </fieldset>
+          </div>
+        </section>
+      </form>
+
+      <div class="input-model-note">
+        <strong>You control the inputs.</strong>
+        <span>The model calculates the results.</span>
+      </div>
+    </aside>
+
+    <section id="living-planet" class="planet-stage" aria-labelledby="living-planet-title">
+      <header class="stage-heading">
+        <p class="eyebrow">Model calculates</p>
+        <h2 id="living-planet-title">Living Planet</h2>
+        <p id="planet-subtitle">A fictional rocky world responding to Planet State</p>
+      </header>
+
+      <details class="overlay-menu">
+        <summary>Scientific Overlays</summary>
+        <fieldset>
+          <legend class="visually-hidden">Choose planet overlays</legend>
+          <label><input type="checkbox" data-overlay="heat"> Heat context</label>
+          <label><input type="checkbox" data-overlay="magnetic"> Magnetic field</label>
+          <label><input type="checkbox" data-overlay="radiation"> Radiation context</label>
+          <label><input type="checkbox" data-overlay="grid"> Measurement grid</label>
+        </fieldset>
+      </details>
+
+      <div class="planet-visual-wrap">
+        <svg id="planet-visual" class="planet-visual" viewBox="0 0 640 640" role="img" aria-labelledby="planet-visual-title planet-visual-desc">
+          <title id="planet-visual-title">Fictional modeled planet</title>
+          <desc id="planet-visual-desc">Planet visual state loading.</desc>
+          <defs>
+            <radialGradient id="planetBase" cx="35%" cy="28%" r="75%">
+              <stop offset="0" class="planet-light-stop"></stop>
+              <stop offset="0.58" class="planet-mid-stop"></stop>
+              <stop offset="1" class="planet-dark-stop"></stop>
+            </radialGradient>
+            <radialGradient id="planetShade" cx="30%" cy="25%" r="75%">
+              <stop offset="0.45" stop-color="#fff" stop-opacity="0"></stop>
+              <stop offset="0.78" stop-color="#020711" stop-opacity="0.25"></stop>
+              <stop offset="1" stop-color="#01040b" stop-opacity="0.92"></stop>
+            </radialGradient>
+            <filter id="planetTexture" x="-10%" y="-10%" width="120%" height="120%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.018 0.035" numOctaves="3" seed="17" result="noise"></feTurbulence>
+              <feColorMatrix in="noise" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .26 0"></feColorMatrix>
+            </filter>
+            <filter id="atmosphereGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="9"></feGaussianBlur>
+            </filter>
+            <clipPath id="planetClip"><circle cx="320" cy="320" r="225"></circle></clipPath>
+          </defs>
+
+          <g class="star-context" aria-hidden="true">
+            <circle id="star-disc" cx="72" cy="90" r="24"></circle>
+            <circle class="star-halo" cx="72" cy="90" r="38"></circle>
+            <ellipse class="orbit-line" cx="94" cy="162" rx="63" ry="31"></ellipse>
+            <circle class="orbit-world" cx="150" cy="149" r="6"></circle>
+          </g>
+
+          <circle class="atmosphere-glow" cx="320" cy="320" r="235"></circle>
+          <g clip-path="url(#planetClip)">
+            <g class="planet-rotating-layers">
+              <circle class="planet-base" cx="320" cy="320" r="225" fill="url(#planetBase)"></circle>
+              <g class="water-layer" aria-hidden="true">
+                <path d="M55 245 C125 180 192 218 242 180 C300 136 351 183 402 161 C480 127 558 184 608 252 L610 470 C535 512 462 482 401 522 C335 565 263 510 201 535 C129 565 74 503 49 446 Z"></path>
+                <path d="M55 366 C130 310 182 354 246 328 C313 301 365 344 425 312 C501 271 562 326 611 372 L611 520 L48 520 Z"></path>
+              </g>
+              <g class="terrain-layer" aria-hidden="true">
+                <path d="M105 206 C149 160 218 167 237 207 C252 238 215 267 181 259 C143 251 115 277 85 248 Z"></path>
+                <path d="M276 138 C330 111 381 133 394 178 C403 212 372 229 342 219 C312 210 273 232 253 198 Z"></path>
+                <path d="M391 245 C441 204 514 232 532 280 C548 323 506 351 468 337 C428 323 390 350 369 309 Z"></path>
+                <path d="M174 330 C220 286 278 307 290 354 C300 394 259 417 220 401 C185 386 147 410 129 374 Z"></path>
+                <path d="M320 421 C363 381 423 397 443 439 C461 478 422 508 382 498 C341 488 302 511 286 470 Z"></path>
+              </g>
+              <circle class="surface-texture" cx="320" cy="320" r="225" filter="url(#planetTexture)"></circle>
+              <g class="ice-layer" aria-hidden="true">
+                <path d="M95 220 C139 133 223 94 320 94 C424 94 504 139 548 224 C485 196 442 210 390 186 C337 162 292 201 239 181 C186 162 150 208 95 220 Z"></path>
+                <path d="M92 430 C156 444 197 420 249 451 C303 484 352 447 403 470 C455 494 503 456 548 428 C512 520 432 548 322 548 C216 548 130 516 92 430 Z"></path>
+                <circle cx="320" cy="320" r="225"></circle>
+              </g>
+              <g class="volcano-layer" aria-hidden="true">
+                <circle cx="225" cy="345" r="9"></circle><circle cx="412" cy="285" r="7"></circle><circle cx="365" cy="458" r="6"></circle><circle cx="171" cy="232" r="5"></circle>
+              </g>
+              <circle class="haze-layer" cx="320" cy="320" r="225"></circle>
+              <circle class="planet-shade" cx="320" cy="320" r="225" fill="url(#planetShade)"></circle>
+            </g>
+            <g class="grid-overlay overlay-layer" data-overlay-layer="grid" aria-hidden="true">
+              <ellipse cx="320" cy="320" rx="225" ry="75"></ellipse><ellipse cx="320" cy="320" rx="225" ry="145"></ellipse><ellipse cx="320" cy="320" rx="75" ry="225"></ellipse><ellipse cx="320" cy="320" rx="145" ry="225"></ellipse>
+            </g>
+            <circle class="heat-overlay overlay-layer" data-overlay-layer="heat" cx="320" cy="320" r="225" aria-hidden="true"></circle>
+          </g>
+          <g class="magnetic-overlay overlay-layer" data-overlay-layer="magnetic" aria-hidden="true">
+            <path d="M149 320 C149 167 247 95 320 95 C393 95 491 167 491 320 C491 473 393 545 320 545 C247 545 149 473 149 320 Z"></path>
+            <path d="M115 320 C115 134 234 68 320 68 C406 68 525 134 525 320 C525 506 406 572 320 572 C234 572 115 506 115 320 Z"></path>
+          </g>
+          <g class="radiation-overlay overlay-layer" data-overlay-layer="radiation" aria-hidden="true">
+            <path d="M40 176 L171 242 M24 244 L159 280 M18 320 L150 320 M24 395 L159 359"></path>
+          </g>
+          <circle class="planet-edge" cx="320" cy="320" r="225"></circle>
+        </svg>
+      </div>
+
+      <p id="planet-text-status" class="planet-text-status" aria-live="polite">Calculating planet state…</p>
+
+      <dl class="evidence-strip" aria-label="Calculated planetary evidence">
+        <div><dt>Surface temperature</dt><dd id="evidence-temperature">—</dd></div>
+        <div><dt>Planetary albedo</dt><dd id="evidence-albedo">—</dd></div>
+        <div><dt>Liquid water</dt><dd id="evidence-liquid">—</dd></div>
+        <div><dt>Pressure</dt><dd id="evidence-pressure">—</dd></div>
+        <div><dt>Stellar flux</dt><dd id="evidence-flux">—</dd></div>
+      </dl>
+    </section>
+
+    <aside id="planetary-status" class="panel status-panel" aria-labelledby="status-title">
+      <header class="panel-heading">
+        <p class="eyebrow">Model calculates</p>
+        <h2 id="status-title">Planetary Status</h2>
+        <p>Five systems tell different parts of the story.</p>
+      </header>
+      <div id="status-cards" class="status-cards"></div>
+      <p class="provisional-note"><strong>Phase 1 note:</strong> Protection and Environmental Stability show approved evidence only. Their composite thresholds are not yet calibrated, so no score is assigned.</p>
+    </aside>
+
+    <section id="life-lab" class="panel life-lab-panel" aria-labelledby="life-lab-title" hidden>
+      <header class="life-lab-heading">
+        <div>
+          <p class="eyebrow">Same world · different biological question</p>
+          <h1 id="life-lab-title">Life Lab</h1>
+          <p>Your planet has taken shape. Now ask: <strong>habitable for what?</strong></p>
+        </div>
+        <p class="life-lab-principle"><strong>Compatible does not mean inhabited.</strong><br>These categories are not an evolutionary ladder.</p>
+      </header>
+
+      <details class="keyboard-directions">
+        <summary>Keyboard directions</summary>
+        <p>Use Tab to reach the life-category choices, arrow keys to move among them, and Space to select. Use Enter or Space to open an evidence explanation. Choose Build to change the planet.</p>
+      </details>
+
+      <fieldset id="life-category-selector" class="life-category-selector" aria-describedby="life-category-help">
+        <legend>Choose a form of life to investigate</legend>
+        <p id="life-category-help">Each choice interprets the same unchanged Planet State.</p>
+
+        <label class="life-choice" data-category-card="extremophile">
+          <input type="radio" name="lifeCategory" value="extremophile">
+          <span class="life-symbol" aria-hidden="true">✦</span>
+          <span class="life-choice-copy"><strong>Extremophile Microorganisms</strong><small>Unusually stress-tolerant microbes</small></span>
+          <span class="life-choice-status" id="category-status-extremophile">—</span>
+        </label>
+
+        <label class="life-choice" data-category-card="microbial">
+          <input type="radio" name="lifeCategory" value="microbial" checked>
+          <span class="life-symbol" aria-hidden="true">○</span>
+          <span class="life-choice-copy"><strong>General Microbial Life</strong><small>Broad microbial surface activity</small></span>
+          <span class="life-choice-status" id="category-status-microbial">—</span>
+        </label>
+
+        <label class="life-choice" data-category-card="photosynthetic">
+          <input type="radio" name="lifeCategory" value="photosynthetic">
+          <span class="life-symbol" aria-hidden="true">☼</span>
+          <span class="life-choice-copy"><strong>Photosynthetic Life</strong><small>Surface primary production using starlight</small></span>
+          <span class="life-choice-status" id="category-status-photosynthetic">—</span>
+        </label>
+
+        <label class="life-choice" data-category-card="aquatic">
+          <input type="radio" name="lifeCategory" value="aquatic">
+          <span class="life-symbol" aria-hidden="true">≈</span>
+          <span class="life-choice-copy"><strong>Aquatic Multicellular Life</strong><small>Multicellular organisms in liquid water</small></span>
+          <span class="life-choice-status" id="category-status-aquatic">—</span>
+        </label>
+
+        <label class="life-choice" data-category-card="terrestrial">
+          <input type="radio" name="lifeCategory" value="terrestrial">
+          <span class="life-symbol" aria-hidden="true">◇</span>
+          <span class="life-choice-copy"><strong>Complex Terrestrial Life</strong><small>Complex multicellular surface organisms</small></span>
+          <span class="life-choice-status" id="category-status-terrestrial">—</span>
+        </label>
+
+        <label class="life-choice" data-category-card="human">
+          <input type="radio" name="lifeCategory" value="human">
+          <span class="life-symbol" aria-hidden="true">△</span>
+          <span class="life-choice-copy"><strong>Human-Like Life</strong><small>Prolonged unprotected Earth-human surface exposure</small></span>
+          <span class="life-choice-status" id="category-status-human">—</span>
+        </label>
+      </fieldset>
+
+      <article class="compatibility-result" aria-labelledby="selected-life-name">
+        <div class="compatibility-summary">
+          <div>
+            <p class="eyebrow">Environmental compatibility</p>
+            <h2 id="selected-life-name">General Microbial Life</h2>
+          </div>
+          <p id="life-compatibility-status" class="compatibility-status" data-status="Uncertain"><span aria-hidden="true">?</span> Uncertain</p>
+        </div>
+        <p id="life-compatibility-summary" class="compatibility-explanation">Interpreting the current Planet State…</p>
+        <dl class="life-evidence-snapshot" aria-label="Planet State evidence used by Life Lab">
+          <div><dt>Global mean</dt><dd id="life-snapshot-temperature">—</dd></div>
+          <div><dt>Liquid surface</dt><dd id="life-snapshot-water">—</dd></div>
+          <div><dt>Pressure</dt><dd id="life-snapshot-pressure">—</dd></div>
+          <div><dt>O₂ partial pressure</dt><dd id="life-snapshot-oxygen">—</dd></div>
+        </dl>
+      </article>
+
+      <div class="life-evidence-groups">
+        <section class="life-evidence-group supporting" aria-labelledby="supporting-title">
+          <header><span aria-hidden="true">+</span><h3 id="supporting-title">Supporting Conditions</h3></header>
+          <ul id="supporting-evidence" class="life-evidence-list"></ul>
+        </section>
+        <section class="life-evidence-group limiting" aria-labelledby="limiting-title">
+          <header><span aria-hidden="true">!</span><h3 id="limiting-title">Limiting Conditions</h3></header>
+          <ul id="limiting-evidence" class="life-evidence-list"></ul>
+        </section>
+        <section class="life-evidence-group uncertainty" aria-labelledby="uncertainty-title">
+          <header><span aria-hidden="true">?</span><h3 id="uncertainty-title">Important Uncertainty</h3></header>
+          <ul id="uncertainty-evidence" class="life-evidence-list"></ul>
+        </section>
+      </div>
+
+      <p class="life-scope-note">Life Lab interprets modeled environmental compatibility. It does not calculate whether life exists, the probability of life, or a universal habitability score.</p>
+      <p id="life-live-status" class="visually-hidden" aria-live="polite" aria-atomic="true"></p>
+    </section>
+
+    <section id="discoveries-workspace" class="panel discoveries-workspace" aria-labelledby="discoveries-title" hidden>
+      <header class="discoveries-heading">
+        <div>
+          <p class="eyebrow">Saved scientific experiments</p>
+          <h1 id="discoveries-title">Snapshots, Comparison, and Discoveries</h1>
+          <p>A snapshot preserves a planet's scientific state. Comparison separates what you changed from how the model responded.</p>
+        </div>
+        <p id="storage-status" class="storage-status">Checking browser storage…</p>
+      </header>
+
+      <details class="keyboard-directions experiment-directions">
+        <summary>Keyboard directions</summary>
+        <p>Use Tab to reach snapshot actions and comparison selectors. Use arrow keys within each selector, then Tab onward to read the comparison. Destructive actions always ask for confirmation.</p>
+      </details>
+
+      <section class="snapshot-library" aria-labelledby="snapshot-library-title">
+        <header class="section-heading-row">
+          <div><p class="eyebrow">Physical Planet States</p><h2 id="snapshot-library-title">Snapshot Library</h2></div>
+          <div class="section-actions">
+            <span id="snapshot-count">0 of 5 saved</span>
+            <button type="button" id="clear-snapshots-button" class="utility-button utility-danger" disabled>Clear All Snapshots</button>
+          </div>
+        </header>
+        <p id="snapshot-empty" class="empty-workspace">No snapshots saved yet. Return to Build, create a planet worth preserving, and choose Save Snapshot.</p>
+        <div id="snapshot-cards" class="snapshot-cards"></div>
+      </section>
+
+      <section class="comparison-workspace" aria-labelledby="comparison-title">
+        <header class="section-heading-row">
+          <div><p class="eyebrow">Cause and consequence</p><h2 id="comparison-title">Compare Two Experiments</h2></div>
+        </header>
+        <div class="comparison-selectors">
+          <label for="compare-snapshot-a">Compare Snapshot A</label>
+          <select id="compare-snapshot-a"></select>
+          <span aria-hidden="true">with</span>
+          <label for="compare-snapshot-b">Snapshot B</label>
+          <select id="compare-snapshot-b"></select>
+        </div>
+        <p id="comparison-guidance" class="empty-workspace">Save at least two snapshots to begin a scientific comparison.</p>
+
+        <div id="comparison-results" hidden>
+          <div class="comparison-planets">
+            <article id="snapshot-a-summary" class="comparison-planet-card"></article>
+            <article id="snapshot-b-summary" class="comparison-planet-card"></article>
+          </div>
+
+          <section class="difference-section you-changed" aria-labelledby="you-changed-title">
+            <h3 id="you-changed-title">You Changed</h3>
+            <p>Student-controlled causes, reading Snapshot B relative to Snapshot A.</p>
+            <ul id="input-differences" class="difference-list"></ul>
+          </section>
+
+          <section class="difference-section model-response" aria-labelledby="model-response-title">
+            <h3 id="model-response-title">Model Response</h3>
+            <p>Calculated consequences preserved in each Planet State.</p>
+            <ul id="model-differences" class="difference-list"></ul>
+            <details id="unchanged-evidence-details">
+              <summary>Unchanged at displayed precision</summary>
+              <ul id="unchanged-evidence" class="difference-list secondary"></ul>
+            </details>
+          </section>
+
+          <section class="difference-section scientific-interpretation" aria-labelledby="scientific-interpretation-title">
+            <h3 id="scientific-interpretation-title">Scientific Interpretation</h3>
+            <p id="comparison-interpretation"></p>
+            <ol id="comparison-causal-chain" class="comparison-causal-chain"></ol>
+            <div id="comparison-feedbacks"></div>
+          </section>
+
+          <section class="life-comparison" aria-labelledby="life-comparison-title">
+            <div>
+              <p class="eyebrow">Same category · two planets</p>
+              <h3 id="life-comparison-title">Life Lab Comparison</h3>
+            </div>
+            <label for="comparison-life-category">Life category</label>
+            <select id="comparison-life-category">
+              <option value="extremophile">Extremophile Microorganisms</option>
+              <option value="microbial">General Microbial Life</option>
+              <option value="photosynthetic">Photosynthetic Life</option>
+              <option value="aquatic">Aquatic Multicellular Life</option>
+              <option value="terrestrial">Complex Terrestrial Life</option>
+              <option value="human">Human-Like Life</option>
+            </select>
+            <div id="life-comparison-results" class="life-comparison-results"></div>
+            <p>Changing this category asks a new biological question. It does not change either physical planet.</p>
+          </section>
+
+        </div>
+
+        <section class="suggested-discoveries" aria-labelledby="suggested-discoveries-title">
+          <h3 id="suggested-discoveries-title">Suggested Discoveries</h3>
+          <p>Suggestions are not saved automatically. Choose only the findings you want to preserve.</p>
+          <div id="suggestion-cards"></div>
+        </section>
+      </section>
+
+      <section class="discovery-log" aria-labelledby="discovery-log-title">
+        <header class="section-heading-row">
+          <div><p class="eyebrow">Student-owned scientific reasoning</p><h2 id="discovery-log-title">Discovery Log</h2></div>
+          <div class="section-actions">
+            <button type="button" id="add-student-note-button" class="utility-button">Add Scientific Note</button>
+            <button type="button" id="clear-discoveries-button" class="utility-button utility-danger" disabled>Clear Discovery Log</button>
+          </div>
+        </header>
+        <p id="discovery-empty" class="empty-workspace">No discoveries saved. A discovery preserves a relationship or question—not points or an achievement.</p>
+        <div id="discovery-records" class="discovery-records"></div>
+      </section>
+
+      <p class="scope-note">Phase 3 does not automatically classify planets as Ocean Worlds, Snowball Worlds, or other named outcomes. Those thresholds remain scientifically tentative.</p>
+      <p id="experiment-live-status" class="visually-hidden" aria-live="polite" aria-atomic="true"></p>
+    </section>
+
+    <section id="report-workspace" class="report-workspace" aria-labelledby="report-workspace-title" hidden>
+      <header class="report-workspace-heading panel">
+        <div>
+          <p class="eyebrow">Culminating scientific explanation</p>
+          <h1 id="report-workspace-title">Planetary Habitability Report</h1>
+          <p>Facts come from one saved scientific experiment. You choose the evidence and write the conclusion.</p>
+        </div>
+        <p id="report-storage-status" class="storage-status">Checking report storage…</p>
+      </header>
+
+      <nav class="report-mode-switcher" aria-label="Report mode">
+        <button type="button" id="report-edit-mode" aria-pressed="true">Edit Report</button>
+        <button type="button" id="report-preview-mode" aria-pressed="false">Preview Report</button>
+      </nav>
+
+      <div id="report-validation-summary" class="report-validation-summary" role="alert" tabindex="-1" hidden>
+        <h2>Complete these report requirements</h2>
+        <ul id="report-validation-list"></ul>
+      </div>
+
+      <section id="report-editor" class="panel report-editor" aria-labelledby="report-editor-title">
+        <header class="report-section-heading">
+          <div><p class="eyebrow">Student workspace</p><h2 id="report-editor-title" tabindex="-1">Edit Your Scientific Report</h2></div>
+          <div class="report-actions">
+            <button type="button" id="clear-report-button" class="utility-button utility-danger">Clear Report Draft</button>
+            <button type="button" id="preview-report-button" class="primary-button">Preview Report</button>
+          </div>
+        </header>
+
+        <details class="keyboard-directions report-directions">
+          <summary>Keyboard directions</summary>
+          <p>Use Tab and Shift+Tab to move through report fields. Use Space to select evidence checkboxes and arrow keys in snapshot selectors. Preview the complete report before printing.</p>
+        </details>
+
+        <form id="report-form" novalidate>
+          <fieldset class="report-editor-section subject-editor">
+            <legend>1. Choose the final planet</legend>
+            <p>Select one immutable snapshot as the scientific subject. The active unsaved planet is not used automatically.</p>
+            <label for="report-subject">Final planet snapshot</label>
+            <select id="report-subject" name="subjectSnapshotId"></select>
+            <p id="report-subject-help" class="field-help">Need a different final planet? Save it as a snapshot first.</p>
+            <button type="button" id="report-go-snapshots" class="utility-button">Go to Saved Experiments</button>
+          </fieldset>
+
+          <fieldset class="report-editor-section">
+            <legend>2. Select physical evidence</legend>
+            <p>Choose the calculated facts that matter most to your explanation. No evidence is selected automatically.</p>
+            <div id="report-physical-options" class="report-option-grid"></div>
+          </fieldset>
+
+          <fieldset class="report-editor-section">
+            <legend>3. Choose detailed Life Lab evidence</legend>
+            <p>All six compatibility results appear in the report. Select categories whose full condition → consequence → implication evidence should be expanded.</p>
+            <div id="report-life-options" class="report-option-grid"></div>
+          </fieldset>
+
+          <fieldset class="report-editor-section">
+            <legend>4. Select experiments</legend>
+            <p>Include only snapshots that add useful evidence. Their saved science will not be changed.</p>
+            <div id="report-experiment-options" class="report-option-grid"></div>
+          </fieldset>
+
+          <fieldset class="report-editor-section comparison-editor">
+            <legend>5. Include one snapshot comparison <span>(optional)</span></legend>
+            <label class="report-option" for="report-include-comparison">
+              <input type="checkbox" id="report-include-comparison">
+              <span><strong>Include a comparison</strong><small>Controlled comparisons support causal claims; confounded comparisons will be labeled.</small></span>
+            </label>
+            <div id="report-comparison-controls" class="report-comparison-controls" hidden>
+              <label for="report-comparison-a">Snapshot A</label>
+              <select id="report-comparison-a"></select>
+              <label for="report-comparison-b">Snapshot B</label>
+              <select id="report-comparison-b"></select>
+              <label for="report-comparison-life">Life category</label>
+              <select id="report-comparison-life">
+                <option value="extremophile">Extremophile Microorganisms</option>
+                <option value="microbial">General Microbial Life</option>
+                <option value="photosynthetic">Photosynthetic Life</option>
+                <option value="aquatic">Aquatic Multicellular Life</option>
+                <option value="terrestrial">Complex Terrestrial Life</option>
+                <option value="human">Human-Like Life</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <fieldset class="report-editor-section">
+            <legend>6. Select discoveries</legend>
+            <p>Discoveries are scientific reasoning records, not achievements. Include only those that support your report.</p>
+            <div id="report-discovery-options" class="report-option-grid"></div>
+          </fieldset>
+
+          <fieldset class="report-editor-section report-writing-section">
+            <legend>7. Write your scientific reasoning</legend>
+            <p>These words are yours. The application will save them, but it will not generate or grade them.</p>
+            <label for="writing-environmentalSummary">Environmental Summary <span>What conditions define this planet?</span></label>
+            <textarea id="writing-environmentalSummary" data-writing-key="environmentalSummary" maxlength="900" rows="4"></textarea>
+            <label for="writing-lifeCompatibility">Life Compatibility <span>Which forms of life appear most compatible, and what evidence supports that?</span></label>
+            <textarea id="writing-lifeCompatibility" data-writing-key="lifeCompatibility" maxlength="900" rows="4"></textarea>
+            <label for="writing-majorLimitation">Major Limitation <span>What condition creates the greatest challenge?</span></label>
+            <textarea id="writing-majorLimitation" data-writing-key="majorLimitation" maxlength="700" rows="3"></textarea>
+            <label for="writing-scientificEvidence">Scientific Evidence <span>Which experiment, comparison, or discovery is most useful?</span></label>
+            <textarea id="writing-scientificEvidence" data-writing-key="scientificEvidence" maxlength="900" rows="4"></textarea>
+            <label for="writing-uncertainty">Important Uncertainty <span>What question cannot this model answer confidently?</span></label>
+            <textarea id="writing-uncertainty" data-writing-key="uncertainty" maxlength="700" rows="3"></textarea>
+            <label for="writing-finalConclusion">Final Conclusion <strong>required to print</strong><span>Characterize this planet’s multidimensional habitability in your own words.</span></label>
+            <textarea id="writing-finalConclusion" data-writing-key="finalConclusion" maxlength="1600" rows="6" required></textarea>
+          </fieldset>
+        </form>
+      </section>
+
+      <section id="report-preview-panel" class="report-preview-panel" aria-labelledby="report-preview-heading" hidden>
+        <header class="report-preview-toolbar">
+          <div><p class="eyebrow">Complete document</p><h2 id="report-preview-heading" tabindex="-1">Report Preview</h2></div>
+          <div class="report-actions">
+            <button type="button" id="return-to-report-edit" class="utility-button">Return to Edit</button>
+            <button type="button" id="print-report-button" class="primary-button">Print / Save as PDF</button>
+          </div>
+        </header>
+        <article id="report-document" class="report-document" aria-labelledby="report-document-title"></article>
+      </section>
+
+      <p id="report-live-status" class="visually-hidden" aria-live="polite" aria-atomic="true"></p>
+    </section>
+
+    <section class="panel mission-control" aria-labelledby="mission-control-title">
+      <header class="mission-heading">
+        <div>
+          <p class="eyebrow">Scientific interpretation console</p>
+          <h2 id="mission-control-title">Mission Control</h2>
+        </div>
+        <button type="button" id="why-toggle" aria-expanded="false" aria-controls="causal-panel">Why did this change?</button>
+      </header>
+      <div class="mission-columns" aria-live="polite" aria-atomic="true">
+        <article><h3>Observation</h3><p id="mission-observation">—</p></article>
+        <article><h3>Why It Changed</h3><p id="mission-why">—</p></article>
+        <article><h3>Investigate Next</h3><p id="mission-investigate">—</p></article>
+      </div>
+      <div id="causal-panel" class="causal-panel" hidden>
+        <h3>Cause-and-effect chain</h3>
+        <ol id="causal-chain" class="causal-chain"></ol>
+        <p class="feedback-note">When a loop is shown, “positive feedback” means amplifying—not beneficial.</p>
+    </section>
+
+    <aside class="panel recent-changes" aria-label="Recent committed changes">
+      <details>
+        <summary>Recent Changes <span id="history-count">0</span></summary>
+        <ol id="change-history"></ol>
+      </details>
+    </aside>
+  </main>
+
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <form method="dialog">
+      <header><h2 id="help-title">How to use the laboratory</h2><button value="close" aria-label="Close help">×</button></header>
+      <p>Change one planetary input, then observe the planet, evidence strip, status cards, and Mission Control. Extreme worlds are investigations—not failures.</p>
+      <p>Choose <strong>Life Lab</strong> to interpret that same unchanged planet for six broad forms of life. Category changes ask a new biological question; they do not change the planet or enter Recent Changes.</p>
+      <p>Choose <strong>Save Snapshot</strong> to preserve a scientific experiment, then open <strong>Discoveries</strong> to compare two saved planets. Suggested discoveries enter the log only when you explicitly save them.</p>
+      <h3>Keyboard directions</h3>
+      <ul>
+        <li>Use Tab and Shift+Tab to move between controls.</li>
+        <li>Use arrow keys to adjust sliders and select radio choices.</li>
+        <li>Use Enter or Space to expand control families and status details.</li>
+        <li>Mission Control updates when a change is committed, so slider movement does not flood the history.</li>
+      </ul>
+      <p><strong>Earth Reference</strong> loads the calibration benchmark. It is a reference—not the “correct” planet.</p>
+      <button class="primary-button" value="close">Return to the laboratory</button>
+    </form>
+  </dialog>
+
+  <dialog id="reset-dialog" aria-labelledby="reset-title">
+    <form method="dialog">
+      <h2 id="reset-title">Reset this planet?</h2>
+      <p>This restores the exploratory starting world and clears recent changes.</p>
+      <div class="dialog-actions">
+        <button value="cancel">Cancel</button>
+        <button id="confirm-reset" value="confirm" class="danger-button">Reset Planet</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="snapshot-create-dialog" aria-labelledby="snapshot-create-title">
+    <form method="dialog" id="snapshot-create-form">
+      <h2 id="snapshot-create-title">Save this scientific experiment</h2>
+      <p>The snapshot will preserve the current committed Planet State and all six Life Lab interpretations.</p>
+      <label for="snapshot-name">Snapshot name</label>
+      <input id="snapshot-name" maxlength="40" required>
+      <label for="snapshot-note">What were you investigating? <span>(optional)</span></label>
+      <textarea id="snapshot-note" maxlength="240" rows="3"></textarea>
+      <div class="dialog-actions"><button value="cancel" formnovalidate>Cancel</button><button class="primary-button" value="save">Save Snapshot</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="snapshot-edit-dialog" aria-labelledby="snapshot-edit-title">
+    <form method="dialog" id="snapshot-edit-form">
+      <h2 id="snapshot-edit-title">Rename snapshot</h2>
+      <p>Only the student-visible name and note can change. Saved scientific evidence remains immutable.</p>
+      <label for="snapshot-edit-name">Snapshot name</label>
+      <input id="snapshot-edit-name" maxlength="40" required>
+      <label for="snapshot-edit-note">Investigation note <span>(optional)</span></label>
+      <textarea id="snapshot-edit-note" maxlength="240" rows="3"></textarea>
+      <div class="dialog-actions"><button value="cancel" formnovalidate>Cancel</button><button class="primary-button" value="save">Save Changes</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="snapshot-delete-dialog" aria-labelledby="snapshot-delete-title">
+    <form method="dialog" id="snapshot-delete-form">
+      <h2 id="snapshot-delete-title">Delete snapshot?</h2>
+      <p id="snapshot-delete-message"></p>
+      <p>Saved discoveries will retain their captured evidence and snapshot label.</p>
+      <div class="dialog-actions"><button value="cancel">Cancel</button><button class="danger-button" value="delete">Delete Snapshot</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="clear-snapshots-dialog" aria-labelledby="clear-snapshots-title">
+    <form method="dialog" id="clear-snapshots-form">
+      <h2 id="clear-snapshots-title">Clear all snapshots?</h2>
+      <p>This removes every saved physical experiment. Discovery records retain their captured evidence.</p>
+      <div class="dialog-actions"><button value="cancel">Cancel</button><button class="danger-button" value="clear">Clear All Snapshots</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="discovery-save-dialog" aria-labelledby="discovery-save-title">
+    <form method="dialog" id="discovery-save-form">
+      <h2 id="discovery-save-title">Save to Discovery Log</h2>
+      <p id="discovery-source-description"></p>
+      <label for="discovery-title-input">Discovery title</label>
+      <input id="discovery-title-input" maxlength="80" required>
+      <label for="discovery-note-input">What did you learn or want to investigate next? <span>(optional for modeled suggestions)</span></label>
+      <textarea id="discovery-note-input" maxlength="400" rows="4"></textarea>
+      <div class="dialog-actions"><button value="cancel" formnovalidate>Cancel</button><button class="primary-button" value="save">Save Discovery</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="clear-discoveries-dialog" aria-labelledby="clear-discoveries-title">
+    <form method="dialog" id="clear-discoveries-form">
+      <h2 id="clear-discoveries-title">Clear the Discovery Log?</h2>
+      <p>This removes every saved discovery and student note. Snapshots remain available.</p>
+      <div class="dialog-actions"><button value="cancel">Cancel</button><button class="danger-button" value="clear">Clear Discovery Log</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="clear-report-dialog" aria-labelledby="clear-report-title">
+    <form method="dialog" id="clear-report-form">
+      <h2 id="clear-report-title">Clear this report draft?</h2>
+      <p>This removes report selections and student writing. Snapshots and discoveries remain unchanged.</p>
+      <div class="dialog-actions"><button value="cancel">Cancel</button><button class="danger-button" value="clear">Clear Report Draft</button></div>
+    </form>
+  </dialog>
+
+  <noscript>This interactive laboratory requires JavaScript. No internet connection is required.</noscript>
+</body>
+</html>
